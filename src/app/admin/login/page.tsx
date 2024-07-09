@@ -6,21 +6,25 @@ import { Image } from "@nextui-org/react";
 import { Architects_Daughter } from "next/font/google"
 import { apiClient } from "@/src/lib";
 import { ADMIN_API_ROUTES } from "@/src/Utils";
+import { useAppStore } from "@/src/store";
+import { useRouter } from "next/navigation";
 
 const ArchitectsDaughter = Architects_Daughter({
     weight: "400",
     style: "normal",
     subsets: ["latin"],
-})
+});
 const Login = () => {
     const [email, setEmail] = useState("");
     const [password, setPassword] = useState("");
-
+    const {setUserInfo}= useAppStore()
+        const router = useRouter();
     const handleLogin = async () => {
         try {
             const response = await apiClient.post(ADMIN_API_ROUTES.LOGIN, { email, password, });
             if (response.data.userInfo) {
-
+                setUserInfo(response.data.userInfo);
+                router.push("/admin");
             }
         }
         catch(error){
