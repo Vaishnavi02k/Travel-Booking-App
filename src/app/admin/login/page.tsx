@@ -8,6 +8,7 @@ import { apiClient } from "@/src/lib";
 import { ADMIN_API_ROUTES } from "@/src/Utils";
 import { useAppStore } from "@/src/store";
 import { useRouter } from "next/navigation";
+import axios from "axios";
 
 const ArchitectsDaughter = Architects_Daughter({
     weight: "400",
@@ -21,7 +22,7 @@ const Login = () => {
         const router = useRouter();
     const handleLogin = async () => {
         try {
-            const response = await apiClient.post(ADMIN_API_ROUTES.LOGIN, { email, password, });
+            const response = await axios.post(ADMIN_API_ROUTES.LOGIN, { email, password, });
             if (response.data.userInfo) {
                 setUserInfo(response.data.userInfo);
                 router.push("/admin");
