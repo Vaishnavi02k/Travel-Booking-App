@@ -1,12 +1,12 @@
 import { Browser } from "puppeteer";
-import { startLocationScrapping } from "./scrapping";
+import { startLocationScrapping, startPackageScrapping } from "./scrapping";
 
 export const register = async () => {
     if (process.env.NEXT_RUNTIME === "nodejs") {
         const { Worker } = await import("bullmq");
         const { connection, jobsQueue, prisma } = await import("@/src/lib");
         const puppeteer = await import("puppeteer");
-        const SBR_WS_ENDPOINT = 'wss://brd-customer-hl_9e20e8e1-zone-worldexplorer:4kl1fpiimxu3@brd.superproxy.io:9222';
+        const SBR_WS_ENDPOINT = 'wss://brd-customer-hl_fe677fb1-zone-explorer:je45vvmy4f8p@brd.superproxy.io:9222';
         new Worker("jobsQueue", async (job) => {
             let browser: undefined | Browser = undefined;
             try {
@@ -15,7 +15,7 @@ export const register = async () => {
                 });
                 const page = await browser.newPage();
                 console.log("connected! Navigating to" + job.data.url);
-                await page.goto(job.data.url, { timeout: 20000 });
+                await page.goto(job.data.url, { timeout: 60000 });
                 console.log("Navigated! Scrapping page content....");
                 if (job.data.jobType.type === "location") {
 
@@ -42,7 +42,25 @@ export const register = async () => {
                     }
                 }
                 else if (job.data.jobType.type === "package") {
-                    console.log(job.data);
+                    //already scraped check
+                    const alreadyScrapped = await prisma.trips.findUnique({
+                        where: { id: job.data.packageDetails.id },
+                    });
+                    //scrape the package
+                    if (!alreadyScrapped) {
+                        //store the package in trips model
+                        const pkg = await startPackageScrapping(
+                            page,
+                            job.data.packageDetails
+                        );
+                        // console.log(pkg);
+                        await prisma.trips.create({data: pkg });
+                        //mark the job complete 
+                        await prisma.jobs.update({
+                            where: { id: job.data.id },
+                            data: { isComplete: true, status: "complete" },
+                        })
+                    }
                 }
             } catch (error) {
                 console.log(error);

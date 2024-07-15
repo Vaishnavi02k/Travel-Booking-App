@@ -7,8 +7,8 @@ const AdminLayout = ({children}:{children:React.ReactNode})=>{
             <Sidebar/>
             <section className="flex-1 flex flex-col ">
                 <div className="h-48 bg-black text-white flex justify-center flex-col px-10 gap-3">
-                    <h1 className="text-5xl">Dashboard</h1>
-                    <p>The scraping engine is powered by Bright Data.</p>
+                    <h1 className="text-5xl">Trips</h1>
+                    <p>All the info about Trips</p>
                 </div>
                 {children}
             </section>

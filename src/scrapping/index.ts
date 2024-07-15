@@ -1,3 +1,4 @@
 import { startLocationScrapping } from "./location-scrapping";
+import { startPackageScrapping } from "./package-scrapping";
 
-export {startLocationScrapping};
+export {startLocationScrapping,startPackageScrapping};

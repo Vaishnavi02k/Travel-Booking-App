@@ -5,7 +5,7 @@ interface PackageInfo {
     name: string;
     nights: number;
     days: number;
-    inclusion: string[];
+    inclusions: string[];
     price: number;
 }
 export const startLocationScrapping = async (page: Page): Promise<PackageInfo[]> => {
@@ -19,7 +19,7 @@ export const startLocationScrapping = async (page: Page): Promise<PackageInfo[]>
                 nights: 0,
                 days: 0,
                 price: 0,
-                inclusion: [],
+                inclusions: [],
             };
             const nameElement = packageElement.querySelector(".package-name a") as HTMLAnchorElement;
             const href = nameElement.getAttribute("href");
@@ -44,7 +44,7 @@ export const startLocationScrapping = async (page: Page): Promise<PackageInfo[]>
                         (item.querySelector(".icon-name") as HTMLElement)?.textContent || ""
                 );
 
-                packageInfo.inclusion=inclusionItems;
+                packageInfo.inclusions=inclusionItems;
 
                 const priceElement = packageElement.querySelector(".final-price .amount");
                 packageInfo.price = parseInt(
