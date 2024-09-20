@@ -1,8 +1,11 @@
-import Image from "next/image";
-import { Button } from "@nextui-org/react";
+"use client"
+
+import Search from "../components/client/home/search/search";
 
 export default function Home() {
   return (
-    <Button>Hey</Button>
+    <div className="max-w-[100vw] overflow-hidden">
+      <Search/>
+    </div>
   );
 }

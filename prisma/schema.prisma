@@ -20,6 +20,16 @@ model Admin{
   createdAt DateTime @default(now())
 }
 
+model User{
+  id Int @default(autoincrement()) @id
+  email String @unique
+  firstName String
+  lastName String
+  password String
+  createdAt DateTime @default(now())
+  bookings Bookings[]
+}
+
 model Jobs{
   id Int @default(autoincrement()) @id
   url String
@@ -44,4 +54,17 @@ model Trips{
   description String
   packageItinerary Json
   scrappedOn DateTime @default(now())
+}
+
+model Bookings{
+  id Int @default(autoincrement()) @id
+  createdAt DateTime @default(now())
+  date DateTime
+  bookingType String
+  bookingTypeId String
+  userId Int
+  totalAmount Int
+  paymentIntent String @unique
+  isCompleted Boolean @default(false)
+  user User @relation(fields:[userId],references:[id])
 }

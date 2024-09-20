@@ -10,7 +10,9 @@ const config: Config = {
   ],
   theme: {
     extend: {
-
+      colors:{
+        "blue-text-title": "#243757"
+      }
     },
   },
   darkMode: "class",

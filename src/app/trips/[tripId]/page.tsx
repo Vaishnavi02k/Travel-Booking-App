@@ -1,0 +1,223 @@
+"use client";
+import { useAppStore } from "@/src/store";
+import { TripType } from "@/src/types/trips";
+import { USER_API_ROUTES } from "@/src/Utils/api-routes";
+import { Button, Input, Tab, Tabs } from "@nextui-org/react";
+import axios from "axios";
+import Image from "next/image";
+import { useRouter } from "next/navigation";
+import React, { useEffect, useState } from "react";
+import { FaCalendar, FaCheck, FaFacebook, FaInstagram, FaTwitter, FaWhatsapp } from "react-icons/fa";
+import { IoPerson, IoPricetag } from "react-icons/io5";
+import { RiFileChart2Fill } from "react-icons/ri";
+import { Itinerary } from "./components/itinerary";
+import { ImageGallery } from "./components/images";
+
+const Trip = ({ params: { tripId } }: { params: { tripId: string } }) => {
+
+    const router = useRouter();
+    const { userInfo } = useAppStore();
+    const [tripData, setTripData] = useState<TripType | undefined>(undefined);
+    const [date, setDate] = useState(new Date());
+
+    useEffect(() => {
+
+        const fetchTripData = async () => {
+            const data = await axios.get(`${USER_API_ROUTES.GET_TRIP_DATA}?id=${tripId}`);
+            if (data.data.id) {
+                setTripData(data.data);
+            }
+        };
+
+        if (tripId) {
+            fetchTripData();
+        }
+
+    }, [tripId]);
+
+    const handleDateChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+        const newDate = event.target.value ? new Date(event.target.value) : new Date();
+        setDate(newDate);
+    }
+
+    const bookTrip = async () => {
+        const isoDate= date.toISOString();
+        const response = await axios.post(USER_API_ROUTES.CREATE_BOOKING,{
+            bookingId:tripData?.id,
+            bookingType:"trips",
+            userId:userInfo?.id,
+            taxes:3300,
+            date:isoDate,
+        });
+        if(response.data.client_secret){
+            router.push(`/checkout?client_secret=${response.data.client_secret}`);
+        }
+    };
+
+    return (
+        <div>{tripData &&
+            <>
+
+                <div className="grid grid-cols-3 my-10 gap-10 mx-32">
+                    <div className="col-span-12">
+                    <ImageGallery images={tripData.images} />
+                    </div>
+                    <div className="col-span-9">
+                        <div className="bg-white px-5 py-5 rounded-lg flex flex-col gap-10 text-blue-text-title">
+                            <div className="p-10 bg-[#f5f5fe] rounded-lg border-gray-200 flex flex-col gap-5 ">
+                                <div className="border-b-2 border-dotted border-gray-400 flex justify-between w-full pb-5">
+                                    <h1 className="text-3xl">
+                                        <strong className="font-medium">{tripData?.name}</strong>
+                                    </h1>
+                                    <ul className="flex gap-4 text-2xl items-center">
+                                        <li className="cursor-pointer text-blue-500 bg-blue-100 p-3 rounded-full">
+                                            <FaFacebook />
+                                        </li>
+                                        <li className="cursor-pointer text-blue-500 bg-blue-100 p-3 rounded-full">
+                                            <FaWhatsapp />
+                                        </li>
+                                        <li className="cursor-pointer text-blue-500 bg-blue-100 p-3 rounded-full">
+                                            <FaInstagram />
+                                        </li>
+                                    </ul>
+                                </div>
+                                <div>
+                                    <ul className="grid grid-cols-2 gap-5">
+                                        <li>
+                                            <span>Trip ID:</span>
+                                            <span className="text-blue-500">{tripData.id}</span>
+                                        </li>
+                                        <li>
+                                            <span>Duration:</span>
+                                            <span>{tripData.days} Days, {tripData.nights} Nights</span>
+                                        </li>
+                                        <li className="flex gap-4">
+                                            <span>Locations Covered</span>
+                                            <ul className="flex flex-col gap-5">
+                                                {
+                                                    tripData?.destinationItinerary.map((destination) => {
+                                                        return (
+                                                            <li key={destination.place}>
+                                                                <span>{destination.place}</span>
+                                                                <span>
+                                                                    &nbsp;{destination.totalNights} nights
+                                                                </span>
+                                                            </li>
+                                                        );
+                                                    })
+                                                }
+                                            </ul>
+                                        </li>
+                                    </ul>
+                                </div>
+                            </div>
+                            <div className="px-10 py-10 bg-[#f5f5fe] rounded-lg border border-gray-200 gap-3 flex flex-col">
+                                <h3 className="text-2xl"> <strong className="font-medium">Overview</strong></h3>
+                                <p>{tripData.description}</p>
+                            </div>
+                            <div className="px-10 py-10 bg-[#f5f5fe] rounded-lg border border-gray-200 gap-3 flex flex-col">
+                                <h3 className="text-2xl"> <strong className="font-medium">Tour Highlights</strong></h3>
+                                <ul className="grid grid-cols-4 gap-5 mt-3">
+                                    {
+                                        tripData.themes.map((theme) => (
+                                            <li key={theme} className="flex gap-2 items-center">
+                                                <span className="text-sm text-blue-500 bg-blue-200 p-2 rounded-full"> <FaCheck /></span>
+                                                <span>{theme}</span>
+                                            </li>
+                                        ))
+                                    }
+                                    {
+                                        tripData.inclusions.map((inclusion) => (
+                                            <li key={inclusion} className="flex gap-2 items-center">
+                                                <span className="text-sm text-blue-500 bg-blue-200 p-2 rounded-full"> <FaCheck /></span>
+                                                <span>{inclusion}</span>
+                                            </li>
+                                        ))
+                                    }
+                                </ul>
+                            </div>
+                            <div className="px-10 py-10 bg-[#f5f5fe] rounded-lg border border-gray-200 gap-3 flex flex-col">
+                                <h3 className="text-2xl"> <strong className="font-medium">Itinerary</strong></h3>
+                                <div>
+                                    <Itinerary data={tripData.detailedItinerary} />
+                                </div>
+                            </div>
+                            <div className="px-10 py-10 bg-[#f5f5fe] rounded-lg border border-gray-200 gap-3 flex flex-col">
+                                <h3 className="text-2xl"> <strong className="font-medium">Location Overview</strong></h3>
+                                <div>
+                                    <Tabs variant="bordered" color="primary">
+                                        {
+                                            tripData.destinationDetails.map((city) =>
+                                                <Tab
+                                                    key={city.name}
+                                                    title={city.name}
+                                                    className="flex gap-5"
+                                                >
+                                                    <div className="relative h-[200px] w-[20vw]">
+                                                        <Image src={city.image} fill alt={city.name} />
+                                                    </div>
+                                                    <p className="flex-1">{city.description}</p>
+                                                </Tab>
+                                            )
+                                        }
+                                    </Tabs>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div className="bg-white p-5 rounded-lg flex flex-col gap-10 h-max text-blue-text-title">
+                        <div className="flex flex-col gap-3">
+                            <h1 className="font-medium text-2xl">Price</h1>
+                            <div className="flex gap-2 items-center justify-between">
+                                <div className="flex gap-2">
+                                    <IoPricetag className="text-3xl" />
+                                    <span className="text-2xl"> From</span>
+                                </div>
+                                <span className="text-4xl font-bold">₹{tripData.price}</span>
+                            </div>
+                        </div>
+                        <div className="flex flex-col gap-5">
+                            <Input
+                                endContent={<FaCalendar />}
+                                type="date"
+                                onChange={handleDateChange}
+                            />
+                            <Input
+                                endContent={<IoPerson />}
+                                placeholder="Guests"
+                                type="number"
+                            />
+                        </div>
+                        <ul className="flex flex-col gap-2">
+                            <li className="flex justify-between">
+                                <span>Base Price</span>
+                                <span>₹{tripData.price}</span>
+                            </li>
+                            <li className="flex justify-between">
+                                <span>State Price</span>
+                                <span>₹800</span>
+                            </li>
+                            <li className="flex justify-between">
+                                <span>Base Price</span>
+                                <span>₹500</span>
+                            </li>
+                            <li className="flex justify-between">
+                                <span>Convience Fee</span>
+                                <span>₹2000</span>
+                            </li>
+                            <li className="flex justify-between border-t-1 pt-1">
+                                <span>Total Price</span>
+                                <span>₹{tripData.price + 3300}</span>
+                            </li>
+                        </ul>
+                        <Button color="primary" size="lg" className="rounded-full" onClick={() => userInfo && bookTrip()}>
+                            {userInfo ? "Book Trip" : "Login to Book Trip"}
+                        </Button>
+                    </div>
+                </div>
+            </>
+        }
+        </div>
+    );
+}
+export default Trip;
